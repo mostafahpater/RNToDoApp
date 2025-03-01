@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import TaskItem from '../../components/TaskItem';
 import TaskInputField from '../../components/TaskInputField';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import ErrorModal from '../../components/ErrorModal';
 
 
 interface Task {
@@ -13,6 +14,7 @@ interface Task {
 
 const HomeScreen = () => {
   const { taskList, error, loading } = useAppSelector(state => state.tasks);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const incompleteTasksCount = useMemo(() => {
     return taskList?.filter((task: Task) => !task.isDone).length || 0;
@@ -36,11 +38,25 @@ const HomeScreen = () => {
       <FlatList
         data={taskList}
         keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={() => (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Image
+              source={require('../../assets/images/Empty-image-list.png')}
+              style={{ width: '100%', height: 350 }}
+            />
+            <Text style={styles.emptyText}>Oops! You don't have any to do list today</Text>
+          </View>
+        )}
         renderItem={({ item, index }) => <TaskItem index={index + 1} item={item} />}
         contentContainerStyle={styles.taskList}
       />
 
       <TaskInputField />
+      <ErrorModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        message={error}
+      />
     </View>
   );
 };
@@ -64,13 +80,20 @@ const styles = StyleSheet.create({
   taskList: {
     paddingBottom: 70,
     paddingHorizontal: 20,
+    flex: 1
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor:'#fff'
+    backgroundColor: '#fff'
   },
+  emptyText: {
+    fontSize: 20,
+    width: '60%',
+    textAlign: 'center',
+    marginTop: 30
+  }
 });
 
 export default HomeScreen;

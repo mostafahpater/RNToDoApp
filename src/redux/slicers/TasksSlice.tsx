@@ -1,7 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
-import type { RootState } from '../store'
-import axios from 'axios';
 
 interface taskItem {
   task: string;
@@ -31,24 +28,24 @@ export const createTask = createAsyncThunk<taskItem, taskItem, { rejectValue:str
   }
 );
 
-export const deleteTask = createAsyncThunk<{ id: number }, any, { rejectValue:string  }>(
+export const deleteTask = createAsyncThunk<any, any, { rejectValue:string  }>(
   'tasks/deleteTask',
-  async (id, thunkAPI) => {
+  async (data, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-      return id;
+      return data;
     } catch (error) {
       return rejectWithValue('Failed to update task');
     }
   }
 );
 
-export const updateTask = createAsyncThunk<{ id: number, isDone: boolean }, { id: number, isDone: boolean },{ rejectValue:string  }>(
+export const updateTask = createAsyncThunk<any, any,{ rejectValue:string  }>(
   'tasks/updateTask',
-  async ({ id, isDone }, thunkAPI) => {
+  async (data, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-      return { id, isDone };
+      return data;
     } catch (error) {
       return rejectWithValue('Failed to delete task');
     }
@@ -82,7 +79,7 @@ const TasksSlice = createSlice({
       state.error = false;
     }).addCase(deleteTask.fulfilled, (state, action) => {
       state.loading = false;
-      state.taskList = state.taskList.filter((item: any) => item.id !== action.payload);
+      state.taskList = action.payload
     }).addCase(deleteTask.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || 'Something went wrong';
@@ -94,9 +91,7 @@ const TasksSlice = createSlice({
       state.error = false;
     }).addCase(updateTask.fulfilled, (state, action) => {
       state.loading = false;
-      state.taskList = state.taskList.map((task) =>
-        task.id === action.payload.id ? { ...task, isDone: action.payload.isDone } : task
-      );
+      state.taskList = action.payload
     }).addCase(updateTask.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || 'Something went wrong';

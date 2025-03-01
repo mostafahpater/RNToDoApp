@@ -1,8 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useAppDispatch } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { deleteTask, startLoading, updateTask } from '../redux/slicers/TasksSlice';
+import ErrorModal from './ErrorModal';
 
 interface Task {
     id: number;
@@ -17,18 +18,23 @@ interface TaskItemProps {
 
 const TaskItem: React.FC<TaskItemProps> = ({ index, item }) => {
     const dispatch = useAppDispatch();
-
+    const { taskList, error, loading } = useAppSelector(state => state.tasks)
+    const [modalVisible, setModalVisible] = useState(false);
     const completedTaskMethod = useCallback(() => {
         dispatch(startLoading());
+        const newDataUpdated=taskList.map((task) =>
+            task.id === item.id ? { ...task, isDone: !item.isDone } : task
+          );
         setTimeout(() => {
-            dispatch(updateTask({ id: item.id, isDone: !item.isDone }));
+            dispatch(updateTask(newDataUpdated));
         }, 1000);
     }, [dispatch, item.id, item.isDone]);
 
     const deleteTaskMethod = useCallback(() => {
         dispatch(startLoading());
+        const newData=taskList.filter((items: any) => items.id !== item.id);
         setTimeout(() => {
-            dispatch(deleteTask(item.id));
+            dispatch(deleteTask(newData));
         }, 1000);
     }, [dispatch, item.id]);
 
@@ -60,6 +66,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ index, item }) => {
                     </TouchableOpacity>
                 </View>
             </View>
+            <ErrorModal
+              visible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              message={error}
+            />
         </View>
     );
 };
